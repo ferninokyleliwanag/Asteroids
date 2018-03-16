@@ -1,0 +1,24 @@
+import java.awt.*;
+
+public class Player extends Sprite {
+
+    public int playerLife = 3;
+
+    public Player(Color color, int x, int y, int width, int height){
+
+        super(color, x, y, width, height);
+    }
+
+    @Override
+    public void paint(Graphics g){
+
+        g.setColor(color);
+        //g.fillRect(x, y, width, height);
+        g.setFont( new Font("TimesRoman", Font.PLAIN, width));
+        g.drawString("A", x, y);
+
+
+    }
+
+
+}
