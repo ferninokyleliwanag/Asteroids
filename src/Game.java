@@ -22,8 +22,25 @@ public class Game extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 super.keyPressed(e);
-                if(e.getKeyCode() == KeyEvent.VK_SPACE){
-                    board.shootBullet();
+                if(GAMESTATES.PLAY) {
+                    if(e.getKeyCode() == KeyEvent.VK_SPACE) {
+                        board.shootBullet();
+                    }
+                    if(e.getKeyCode() == KeyEvent.VK_P) {
+                        GAMESTATES.pauseGame();
+                    }
+                } else if(GAMESTATES.PAUSE) {
+                    if(e.getKeyCode() == KeyEvent.VK_P) {
+                        GAMESTATES.resumeGame();
+                    }
+                } else if(GAMESTATES.MENU) {
+                    if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        GAMESTATES.startGame();
+                    }
+                } else if(GAMESTATES.END) {
+                    if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                        System.exit(0);
+                    }
                 }
             }
         });

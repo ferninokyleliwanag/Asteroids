@@ -66,17 +66,85 @@ public class Board extends JPanel implements ActionListener{
 
     public void paintComponent(Graphics g){
         super.paintComponent(g);
-        for(int i = 0; i < actors.size(); i++){
-            actors.get(i).paint(g);
+        if(GAMESTATES.PLAY) {
+            for(int i = 0; i < actors.size(); i++) {
+                actors.get(i).paint(g);
+            }
+        } else if(GAMESTATES.PAUSE) {
+            g.setFont(new Font("Comic Sans MS", Font.BOLD, 48));
+            g.setColor(Color.white);
+            printSimpleString("PAUSE", getWidth(), 0, getHeight()/2, g);
+            g.setFont(new Font("Comic Sans MS", Font.PLAIN, 24));
+            printSimpleString("Press P to resume", getWidth(), 0, getHeight()/2 + 50, g);
+        } else if(GAMESTATES.MENU) {
+            g.setFont(new Font("Comic Sans MS", Font.BOLD, 48));
+            g.setColor(Color.white);
+            printSimpleString("Asteroids", getWidth(), 0, getHeight()/2, g);
+            g.setFont(new Font("Comic Sans MS", Font.PLAIN, 24));
+            printSimpleString("Use MOUSE to move and SPACE to shoot", getWidth(), 0, getHeight()/2 + 50, g);
+            printSimpleString("Press P to pause during gameplay", getWidth(), 0, getHeight()/2 + 100, g);
+            printSimpleString("Press ENTER to start", getWidth(), 0, getHeight()/2 + 150, g);
+        } else if(GAMESTATES.END) {
+            g.setFont(new Font("Comic Sans MS", Font.BOLD, 48));
+            g.setColor(Color.white);
+            if(GAMESTATES.WIN) {
+                printSimpleString("You win!", getWidth(), 0, getHeight()/2, g);
+            } else {
+                printSimpleString("You lose!", getWidth(), 0, getHeight()/2, g);
+            }
+            g.setFont(new Font("Comic Sans MS", Font.PLAIN, 24));
+            printSimpleString("Thanks for playing!", getWidth(), 0, getHeight()/2 + 50, g);
+            printSimpleString("Press ESC to quit", getWidth(), 0, getHeight()/2 + 100, g);
         }
     }
 
+    public void enemyShoot() {
+        if (System.currentTimeMillis() - eLastMoment >= 750) {
+            actors.add(new EnemyBullet(Color.red, actors.get(1).x, actors.get(1).y + actors.get(1).height + 7, 5, 30));
+            eLastMoment = System.currentTimeMillis();
+        }
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        for(int i = 1; i < actors.size(); i++){
-            actors.get(i).move(getHeight(), getWidth());
+        if(GAMESTATES.PLAY) {
+            Sprite remove1 = null;
+            Sprite remove2 = null;
+            for(Sprite actor1 : actors) {
+                actor1.move(getHeight(), getWidth());
+                if(actor1 instanceof Enemy) {
+                    if(((Enemy) actor1).isDead()) {
+                        GAMESTATES.endGame();
+                        GAMESTATES.setWin(true);
+                    }
+                }
+                for(Sprite actor2 : actors) {
+                    if(actor1 != actor2 && actor1.getBounds().intersects(actor2.getBounds())) {
+                        if(actor1 instanceof Bullet && actor2 instanceof Asteroid) {
+                            remove1 = actor2;
+                            remove2 = actor1;
+                        } else if(actor1 instanceof Asteroid && actor2 instanceof Bullet) {
+                            remove1 = actor1;
+                            remove2 = actor2;
+                        }
+                        if(actor1 instanceof Player && (actor2 instanceof Asteroid || actor2 instanceof EnemyBullet)) {
+                            GAMESTATES.endGame();
+                        } else if((actor1 instanceof Asteroid || actor1 instanceof EnemyBullet) && actor2 instanceof Player) {
+                            GAMESTATES.endGame();
+                        }
+                        if(actor1 instanceof Enemy && actor2 instanceof Bullet) {
+                            ((Enemy) actor1).bulletHit();
+                            remove1 = actor2;
+                        } else if(actor1 instanceof Bullet && actor2 instanceof Enemy) {
+                            ((Enemy) actor2).bulletHit();
+                            remove1 = actor1;
+                        }
+                    }
+                }
+            }
+            actors.remove(remove1);
+            actors.remove(remove2);
         }
 
         repaint();
@@ -99,12 +167,14 @@ public class Board extends JPanel implements ActionListener{
         }
     }
 
-    //add enemy shoot bullet
-    public void enemyShoot(){
-        eCurrentMoment = System.currentTimeMillis();
-        if(eCurrentMoment - eLastMoment > 1000) {
-
-        }
+    private void printSimpleString(String s, int width, int XPos, int YPos, Graphics g2d){
+        //returns the LENGTH of the STRING parameter to the variable stringLen
+        int stringLen = (int)g2d.getFontMetrics().getStringBounds(s, g2d).getWidth();
+        //determines the center of the WIDTH parameter and subtracts the center of the length
+        //to determine the X value to start the string
+        int start = width/2 - stringLen/2;
+        //prints s at the desired X position with adjustment and the desired y.
+        g2d.drawString(s, start + XPos, YPos);
     }
 
 }
